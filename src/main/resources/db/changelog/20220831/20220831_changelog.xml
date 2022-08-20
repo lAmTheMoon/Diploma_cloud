@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        logicalFilePath="db/changelog/20220831/20220831_changelog.xml"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+  <changeSet id="20220807_create_table_USERS"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <createTable tableName="USERS">
+      <column name="id" type="BIGINT" autoIncrement="true">
+        <constraints primaryKey="true" primaryKeyName="id_user"/>
+      </column>
+      <column name="login" type="varchar(255)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="first_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="password" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="20220807_create_table_AUTHORITY"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <createTable tableName="AUTHORITY">
+      <column name="id" type="BIGINT" autoIncrement="true">
+        <constraints primaryKey="true"  primaryKeyName="id_authority"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="20220807_create_table_USERS_AUTHORITIES"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <createTable tableName="USERS_AUTHORITIES">
+      <column name="user_id" type="BIGINT">
+      </column>
+      <column name="authorities_id" type="BIGINT">
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="20220807_add_constraint_to_USERS_AUTHORITIES_fk_user_id"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="USERS_AUTHORITIES"
+                             constraintName="fk_user_on_AUTHORITIES" referencedColumnNames="id"
+                             referencedTableName="USERS"/>
+  </changeSet>
+
+  <changeSet id="20220807_add_constraint_to_USERS_AUTHORITIES_fk_authorities_id"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <addForeignKeyConstraint baseColumnNames="authorities_id" baseTableName="USERS_AUTHORITIES"
+                             constraintName="fk_authorities_on_USERS" referencedColumnNames="id"
+                             referencedTableName="AUTHORITY"/>
+  </changeSet>
+
+  <changeSet id="20220807_create_table_FILES"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <createTable tableName="FILES">
+      <column name="id" type="BIGINT" autoIncrement="true">
+        <constraints primaryKey="true" primaryKeyName="id_files"/>
+      </column>
+      <column name="file_name" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="file_type" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="file_size" type="BIGINT">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="20220807_insert_into_USERS"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+<!--    <sqlFile path="sql/20220807_insert_into_USERS.sql"-->
+<!--             relativeToChangelogFile="true" splitStatements="false"/>-->
+    <insert tableName="users">
+      <column name="login" value="Lusi@mail.ru"/>
+      <column name="first_name" value="Lusi"/>
+      <column name="last_name" value="Lapups"/>
+      <column name="password" value="$2a$10$szx14YqSfyyFX9bSiGumiuHb13m2iumZEkVZQcObU5HNOZUmk2YIO"/>
+    </insert>
+    <insert tableName="users">
+      <column name="login" value="Pups@gmail.com"/>
+      <column name="first_name" value="Pups"/>
+      <column name="last_name" value="Lapups"/>
+      <column name="password" value="$2a$10$8ya08izUVwGeMr5zbieqxelIMCccfyZs5RHqcVari3qlE2vJNXsxe"/>
+    </insert>
+  </changeSet>
+
+  <changeSet id="20220807_insert_into_AUTHORITY"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+<!--    <sqlFile path="sql/20220807_insert_into_AUTHORITY.sql"-->
+<!--             relativeToChangelogFile="true" splitStatements="false"/>-->
+    <insert tableName="authority">
+      <column name="name" value="ROLE_USER"/>
+    </insert>
+    <insert tableName="authority">
+      <column name="name" value="ROLE_ADMIN"/>
+    </insert>
+  </changeSet>
+
+  <changeSet id="20220807_insert_into_USERS_AUTHORITIES"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <sqlFile path="sql/20220807_insert_into_USERS_AUTHORITIES.sql"
+             relativeToChangelogFile="true" splitStatements="false"/>
+  </changeSet>
+
+  <changeSet id="20220807_insert_into_FILES"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <sqlFile path="sql/20220807_insert_into_FILES.sql"
+             relativeToChangelogFile="true" splitStatements="false"/>
+  </changeSet>
+
+</databaseChangeLog>

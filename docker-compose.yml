@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+
+  back:
+    image: back
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: cloud_back
+    ports:
+      - 8081:8081
+    command: java -jar back.jar
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cloud_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://db:5432/cloud_db
+      SPRING_LIQUIBASE_USER: user
+      SPRING_LIQUIBASE_PASSWORD: password
+
+  db:
+    image: postgres:13.3
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cloud_db
+
+  front:
+    image: front
+    container_name: cloud_front
+    build:
+      context: C:\Users\katyk\IdeaProjects\netology-diplom-frontend
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
