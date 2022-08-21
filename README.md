@@ -13,10 +13,10 @@ back: Dockerfile и команда docker build -t back .
 front: добавить Dockerfile в корень проекта FRONT, далее команда docker build -t front .
 
 ```Dockerfile
-FROM node:14
-RUN apt-get update || : && apt-get install python -y
-WORKDIR ./
-COPY package.json ./
+FROM node:14.5.0-alpine
+RUN mkdir -p /app/front
+WORKDIR /app/front
+COPY package*.json ./
 RUN npm install
 COPY . .
 EXPOSE 8080
@@ -25,6 +25,10 @@ CMD [ "npm", "run", "serve" ]
 Приложение запускается командой docker-compose up
 
 Приложение работает по адресу http://localhost:8080
+
+Тестовый пользователь:
+"login": "Lusi@mail.ru",
+"password": "123"
 
 ## Работа приложения
 

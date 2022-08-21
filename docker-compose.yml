@@ -36,7 +36,7 @@ services:
     image: front
     container_name: cloud_front
     build:
-      context: C:\Users\katyk\IdeaProjects\netology-diplom-frontend
+      context: front
       dockerfile: Dockerfile
     ports:
       - 8080:8080
