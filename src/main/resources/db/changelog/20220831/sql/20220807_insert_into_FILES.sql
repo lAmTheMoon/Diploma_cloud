@@ -1,1 +1,0 @@
-INSERT INTO FILES VALUES (1,'pups.txt', 'text/plain', 18);

@@ -2,7 +2,6 @@ package com.example.cloud_back.config;
 
 import com.example.cloud_back.authservice.CustomAuthenticationEntryPoint;
 import com.example.cloud_back.authservice.CustomAuthenticationFilter;
-import com.example.cloud_back.authservice.CustomLogoutSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +26,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CustomAuthenticationFilter customAuthorizationFilter;
-    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
 
@@ -51,11 +49,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/", "/login").permitAll()
-                .antMatchers("/encode").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .logout()
-                .logoutSuccessHandler(customLogoutSuccessHandler)
                 .and()
                 .addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
     }

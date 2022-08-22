@@ -1,34 +1,31 @@
 package com.example.cloud_back.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.example.cloud_back.authservice.Tokens;
+import com.example.cloud_back.authservice.CustomUtils;
 import com.example.cloud_back.dto.AuthDto;
 import com.example.cloud_back.dto.LoginDto;
+import com.example.cloud_back.exception_handling.CloudException;
 import com.example.cloud_back.exception_handling.CredentialException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SecurityService {
-    @Value("${jwt.token.secret}")
-    private String secret;
 
-    private final Tokens tokens;
     private final AuthenticationManager authenticationManager;
+    private final CustomUtils customUtils;
+    private final StorageService service;
 
     public Authentication attemptAuthentication(LoginDto loginDto) throws AuthenticationException {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -39,20 +36,21 @@ public class SecurityService {
     }
 
     public AuthDto successfulAuthentication(Authentication authResult) {
-        User user = (User) authResult.getPrincipal();
-        String token = createToken(user, Algorithm.HMAC256(secret));
-        tokens.add(token);
-        log.info("Sending access_token: {}", token);
-        System.out.println(token);
-        return new AuthDto(token);
+        try {
+            SecurityContextHolder.getContext().setAuthentication(authResult);
+            UserDetails userPrincipal = (UserDetails) authResult.getPrincipal();
+            String jwt = customUtils.generateJwtToken(userPrincipal);
+            service.login(jwt, userPrincipal);
+            log.info(String.format("Authorization success. %s : %s", userPrincipal.getUsername(), jwt));
+            return AuthDto.builder()
+                    .token(jwt).build();
+        } catch (BadCredentialsException e) {
+            throw new CredentialException();
+        }
     }
 
-    private String createToken(User user, Algorithm algorithm) {
-        return JWT.create()
-                .withSubject(user.getUsername())
-                .withClaim("authorities", user.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
-                .sign(algorithm);
+    public void logout(String authToken) {
+        UserDetails userPrincipal = service.logout(authToken).orElseThrow(CloudException::new);
+        log.info(String.format("User %s logout success", userPrincipal.getUsername()));
     }
 }

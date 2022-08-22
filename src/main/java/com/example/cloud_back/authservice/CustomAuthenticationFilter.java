@@ -1,32 +1,23 @@
 package com.example.cloud_back.authservice;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.cloud_back.exception_handling.NotFoundTokenException;
-import com.example.cloud_back.model.Authority;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.cloud_back.exception_handling.IncorrectDataException;
+import com.example.cloud_back.service.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Component
 @Slf4j
@@ -40,50 +31,42 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     @Value("${jwt.token.start}")
     private String start;
 
-    private final Tokens tokens;
+    private final CustomUtils customUtils;
+    private final UserServiceImpl userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        if (!"/login".equals(request.getServletPath())) {
-            Optional<String> authHeader = Optional.ofNullable(request.getHeader(header));
+        try {
+            String jwt = parseJwt(request);
+            if (jwt != null && customUtils.validateJwtToken(jwt)) {
+                String login = customUtils.getUserNameFromJwtToken(jwt);
 
-            if (authHeader.isPresent() && authHeader.get().startsWith(start)) {
-                try {
-                    String token = authHeader.get().substring(start.length());
-                    if (!tokens.contains(token)) {
-                        throw new NotFoundTokenException();
-                    }
+                UserDetails userPrincipal = userService.loadUserByUsername(login);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userPrincipal, null, userPrincipal.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(getAuthenticationToken(token));
-
-                } catch (Exception e) {
-                    log.error("Error login in: {}", e.getMessage());
-                    response.setStatus(UNAUTHORIZED.value());
-                    AuthorityFail authorityFail = new AuthorityFail(e.getMessage());
-                    response.setContentType(APPLICATION_JSON_VALUE);
-                    new ObjectMapper().writeValue(response.getOutputStream(), authorityFail);
-                }
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (IncorrectDataException exc) {
+            log.error("Error ExpiredJwtException: JWT has been expired");
+        } catch (Exception exc) {
+            log.error(String.format("Error %s while getting JWT: %s", exc.getClass().getName(), exc.getLocalizedMessage()));
         }
 
         filterChain.doFilter(request, response);
     }
 
-    @NotNull
-    private UsernamePasswordAuthenticationToken getAuthenticationToken(String token) {
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
-        String username = decodedJWT.getSubject();
-        Collection<Authority> authorities = getAuthorities(decodedJWT);
-        return new UsernamePasswordAuthenticationToken(username, null, authorities);
-    }
-
-    @NotNull
-    private List<Authority> getAuthorities(DecodedJWT decodedJWT) {
-        return decodedJWT.getClaim("authorities").asList(String.class).stream()
-                .map(Authority::new)
-                .collect(Collectors.toList());
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader(header);
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith(start)) {
+            return headerAuth.substring(6);
+        } else {
+            log.error("Error Invalid auth-token format: should start with 'Bearer'");
+        }
+        return null;
     }
 }

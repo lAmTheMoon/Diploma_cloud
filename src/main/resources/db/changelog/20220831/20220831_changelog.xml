@@ -76,13 +76,24 @@
       <column name="file_size" type="BIGINT">
         <constraints nullable="false" />
       </column>
+      <column name="data" type="OID">
+        <constraints nullable="false" />
+      </column>
+      <column name="user_id" type="BIGINT">
+        <constraints nullable="false" />
+      </column>
     </createTable>
+  </changeSet>
+
+  <changeSet id="20220807_add_constraint_to_FILES_fk_user_id"
+             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
+    <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="FILES"
+                             constraintName="fk_user_on_files" referencedColumnNames="id"
+                             referencedTableName="USERS"/>
   </changeSet>
 
   <changeSet id="20220807_insert_into_USERS"
              author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
-<!--    <sqlFile path="sql/20220807_insert_into_USERS.sql"-->
-<!--             relativeToChangelogFile="true" splitStatements="false"/>-->
     <insert tableName="users">
       <column name="login" value="Lusi@mail.ru"/>
       <column name="first_name" value="Lusi"/>
@@ -99,8 +110,6 @@
 
   <changeSet id="20220807_insert_into_AUTHORITY"
              author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
-<!--    <sqlFile path="sql/20220807_insert_into_AUTHORITY.sql"-->
-<!--             relativeToChangelogFile="true" splitStatements="false"/>-->
     <insert tableName="authority">
       <column name="name" value="ROLE_USER"/>
     </insert>
@@ -112,12 +121,6 @@
   <changeSet id="20220807_insert_into_USERS_AUTHORITIES"
              author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
     <sqlFile path="sql/20220807_insert_into_USERS_AUTHORITIES.sql"
-             relativeToChangelogFile="true" splitStatements="false"/>
-  </changeSet>
-
-  <changeSet id="20220807_insert_into_FILES"
-             author="Касатикова Екатерина Сергеевна" runAlways="false" failOnError="true" labels="20220831">
-    <sqlFile path="sql/20220807_insert_into_FILES.sql"
              relativeToChangelogFile="true" splitStatements="false"/>
   </changeSet>
 

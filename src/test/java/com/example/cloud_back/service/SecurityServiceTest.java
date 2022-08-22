@@ -1,6 +1,5 @@
 package com.example.cloud_back.service;
 
-import com.example.cloud_back.authservice.Tokens;
 import com.example.cloud_back.dto.LoginDto;
 import com.example.cloud_back.exception_handling.CredentialException;
 import org.junit.jupiter.api.Test;
@@ -16,8 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 class SecurityServiceTest {
 
-    @Mock
-    private Tokens tokens;
     @Mock
     private AuthenticationManager authenticationManager;
     @InjectMocks
